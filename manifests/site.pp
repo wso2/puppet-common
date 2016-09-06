@@ -16,15 +16,12 @@
 #
 # ------------------------------------------------------------------------------
 
-
-# Include classes - search for classes in *.yaml/*.json files
-if $::use_hieradata {
-  require wso2base::java
-  hiera_include('classes')
-}
-
 node /as\.dev\.wso2\.org/ {
-  include wso2base::java
-  include wso2as
-  Class[wso2base::java] -> Class[wso2as]
+  if $::use_hieradata {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2as': }
+  }
 }
