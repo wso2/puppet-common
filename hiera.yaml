@@ -14,8 +14,8 @@
 
 ---
 :hierarchy:
-    - "wso2/%{::product_name}/%{::product_profile}"
-    - "wso2/%{::product_name}/default"
+    - "wso2/%{::product_name}/%{::pattern}/%{::product_profile}"
+    - "wso2/%{::product_name}/%{::pattern}/common"
     - "wso2/common"
 :backends:
     - yaml
