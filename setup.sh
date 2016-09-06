@@ -24,18 +24,21 @@ source "${self_path}/scripts/base.sh"
 function showUsageAndExit () {
   echoError "Insufficient or invalid options provided!"
   echo
-  echoBold "Usage: ./setup.sh -p [product-name] -v [product-version]"
+  echoBold "Usage: ./setup.sh -p [product-name] -t [pattern]"
   echo
 
   echoBold "Options:"
   echo
   echo -en "  -p\t"
-  echo "[REQUIRED] Product Code"
+  echo "[REQUIRED] Product code. [as,esb,bps,brs,greg,is,apim]"
+  echo -en "  -t\t"
+  echo "[REQUIRED] Product deployment pattern. [pattern_01,pattern_02] "
   echo -en "  -v\t"
-  echo "[REQUIRED] Product version"
+  echo "[OPTIONAL] Product version"
   echo
 
-  echoBold "Ex: ./setup.sh -p apim -v 1.10.0"
+  echoBold "Ex: ./setup.sh -p as -t pattern_01"
+  echoBold "Ex: ./setup.sh -p esb -t pattern_01 -v 1.10.0"
   echo
   exit 1
 }
@@ -70,16 +73,19 @@ function setupModule () {
     current_dir=`pwd`
     # creating symlink for hieradata
     if [ $1 == "base" ];then
-        ln -s  ${current_dir}/wso2esb/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
+        ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
         return
     fi
-    ln -s  ${current_dir}/wso2esb/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
+    ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1}/${2} ../hieradata/dev/wso2/
 }
 
-while getopts :p:v: FLAG; do
+while getopts :p:v:t: FLAG; do
   case $FLAG in
     p)
       product=$OPTARG
+      ;;
+    t)
+      pattern=$OPTARG
       ;;
     v)
       version=$OPTARG
@@ -90,7 +96,7 @@ while getopts :p:v: FLAG; do
   esac
 done
 
-if [[ -z $product ]] || [[ -z $version ]]; then
+if [[ -z ${product} ]] || [[ -z ${pattern} ]]; then
   showUsageAndExit
 fi
 
@@ -105,7 +111,7 @@ mkdir -p modules
 cd modules
 setupModule "base"
 echoSuccess "wso2base puppet module installed."
-setupModule ${product}
+setupModule ${product} ${pattern}
 echoSuccess "wso2${product} puppet module installed."
 
 
