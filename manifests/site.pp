@@ -12,18 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
----
-servers:
-  -
-    enabled: true
-    hostname: as.dev.wso2.org
-    facters:
-      product_name: wso2as
-      product_version: 5.3.0
-      product_profile: default
-      environment: dev
-      platform: default
-    box: ubuntu/trusty64
-    ip: 192.168.100.21
-    ram: 2048
-    cpu: 1
+include wso2base::java
+# include wso2as
+# Class['::wso2base::java'] -> Class['::wso2as']
