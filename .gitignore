@@ -3,6 +3,7 @@
 .classpath
 .settings/
 .metadata
+*.class
 
 # IntelliJ IDEA Project Files
 .idea/
@@ -11,24 +12,19 @@
 *.iws
 *.swp
 
-#Backup files
+# Backup files
 *~
 
-# puppet-modules
-*.zip
-*.gz
-*.tar
+# Package Files #
 *.jar
+*.war
+*.ear
 
 target/
 
-# Puppet modules and hieradata
-modules/*/
-hieradata/*/
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
 
 # Vagrant user data
 vagrant/.vagrant
 vagrant/config.yaml
-
-# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*

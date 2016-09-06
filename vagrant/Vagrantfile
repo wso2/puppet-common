@@ -20,7 +20,8 @@ require 'fileutils'
 
 # load server config from YAML file
 CONFIGURATION_YAML = YAML.load_file('config.yaml')
-PUPPET_HOME = ENV['PUPPET_HOME'] || File.join(File.dirname(__FILE__), '..', '..')
+PUPPET_HOME = ENV['PUPPET_HOME'] || exit(1)
+HIERA_HOME = ENV['HIERA_HOME'] || File.join(PUPPET_HOME, 'hieradata')
 
 $puppet_lib_install_script = <<EOF
    mkdir -p /etc/puppet/modules;
@@ -35,44 +36,47 @@ $puppet_lib_install_script = <<EOF
    echo "ipaddress=$public_ip" > /etc/facter/facts.d/public_ip.txt
 EOF
 
+puts "PUPPET_HOME set to #{PUPPET_HOME}"
+puts "HIERA_HOME set to #{HIERA_HOME}"
+
 Vagrant.configure(2) do |config|
-	CONFIGURATION_YAML["servers"].each do |server|
-		if defined?(server['enabled']) && server['enabled'] != false
-            puts "Provisioning VirtualBox with hostname: ", server['hostname']
-			config.vm.define server["hostname"] do |server_config|
-				server_config.vm.box = server["box"]
-				server_config.vm.host_name = server["hostname"]
-				server_config.vm.network :private_network, ip: server["ip"]
-                server_config.vm.synced_folder PUPPET_HOME + "/hieradata", "/puppet/hieradata", type: "rsync", rsync__args: ["--verbose", "--archive", "--delete", "-z"]
-				memory = server["ram"] ? server["ram"] : 256;
-        cpu = server["cpu"] ? server["cpu"] : 1;
+  CONFIGURATION_YAML['servers'].each do |server|
+    if defined?(server['enabled']) && server['enabled'] != false
+      puts 'Provisioning VirtualBox with hostname: ', server['hostname']
+      config.vm.define server['hostname'] do |server_config|
+        server_config.vm.box = server['box']
+        server_config.vm.host_name = server['hostname']
+        server_config.vm.network :private_network, ip: server['ip']
+        server_config.vm.synced_folder(HIERA_HOME, '/puppet/hieradata')
+        memory = server['ram'] ? server['ram'] : 256
+        cpu = server['cpu'] ? server['cpu'] : 1
 
-				server_config.vm.provider :virtualbox do |vb|
-					vb.name = server["hostname"]
-					vb.check_guest_additions = false
-					vb.functional_vboxsf = false
-					vb.gui = false
-					vb.customize ["modifyvm", :id, "--groups", "/WSO2-Puppet-Dev"]
-					vb.customize ["modifyvm", :id, "--memory", memory]
-					vb.customize ["modifyvm", :id, "--cpus", cpu]
-				end
+        server_config.vm.provider :virtualbox do |vb|
+          vb.name = server['hostname']
+          vb.check_guest_additions = false
+          vb.functional_vboxsf = false
+          vb.gui = false
+          vb.customize ['modifyvm', :id, '--groups', '/WSO2-Puppet-Dev']
+          vb.customize ['modifyvm', :id, '--memory', memory]
+          vb.customize ['modifyvm', :id, '--cpus', cpu]
+        end
 
-				server_config.vm.provision :shell do |shell|
-					shell.inline = $puppet_lib_install_script
-				end
+        server_config.vm.provision :shell do |shell|
+          shell.inline = $puppet_lib_install_script
+        end
 
-				server_config.vm.provision :puppet do |puppet|
-                    puppet.manifest_file = 'site.pp'
-					puppet.manifests_path = PUPPET_HOME + "/manifests"
-					puppet.module_path = PUPPET_HOME + "/modules"
-					puppet.hiera_config_path = PUPPET_HOME + "/hiera.yaml"
-					puppet.working_directory = "/puppet"
-          puppet.options = ["--debug", "--trace"]
+        server_config.vm.provision :puppet do |puppet|
+          puppet.manifest_file = 'site.pp'
+          puppet.manifests_path = File.join(PUPPET_HOME, 'manifests')
+          puppet.module_path = File.join(PUPPET_HOME, 'modules')
+          puppet.hiera_config_path = File.join(PUPPET_HOME, 'hiera.yaml')
+          puppet.working_directory = '/puppet'
+          puppet.options = ['--verbose']
 
-					# custom facts provided to Puppet
-					puppet.facter = server["facters"]
-				end
-			end
-		end
-	end
+          # custom facts provided to Puppet
+          puppet.facter = server['facters']
+        end
+      end
+    end
+  end
 end
