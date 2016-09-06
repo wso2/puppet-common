@@ -47,16 +47,16 @@ function validatePuppetHome () {
         exit 1
     fi
     if [ "$(ls -A $PUPPET_HOME)" ]; then
-        echoDim "[PUPPET_HOME] $PUPPET_HOME directory is not empty. Continuing ..."
+        echoDim "[PUPPET_HOME] $PUPPET_HOME directory is not empty. Continuing..."
     fi
 }
 
 function setupModule () {
 
-    echoInfo "Setting up wso2${1} puppet module ..."
+    echoInfo "Setting up wso2${1} puppet module..."
     if [ -d wso2${1} ]; then
         echoWarn "${PUPPET_HOME}/modules/wso2-${1} directory is not empty."
-        echoWarn "Not cloning ..."
+        echoWarn "Not cloning..."
         return
     fi
     curl -s --head https://github.com/wso2/puppet-${1} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
@@ -67,7 +67,7 @@ function setupModule () {
     git clone https://github.com/wso2/puppet-${1}
     mv puppet-${1} wso2${1}
 
-    echoInfo "Creating symlink for hieradata ..."
+    echoInfo "Creating symlink for hieradata..."
     current_dir=`pwd`
     # creating symlink for hieradata
     if [ $1 == "base" ];then
@@ -98,7 +98,7 @@ if [[ -z ${product} ]]; then
 fi
 
 validatePuppetHome
-echoInfo "Starting setup ..."
+echoInfo "Starting setup..."
 pushd ${PUPPET_HOME} > /dev/null
 cp ${self_path}/hiera.yaml .
 cp -a ${self_path}/manifests .
