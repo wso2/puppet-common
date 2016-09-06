@@ -31,14 +31,12 @@ function showUsageAndExit () {
   echo
   echo -en "  -p\t"
   echo "[REQUIRED] Product code. [as,esb,bps,brs,greg,is,apim]"
-  echo -en "  -t\t"
-  echo "[REQUIRED] Product deployment pattern. [pattern_01,pattern_02] "
   echo -en "  -v\t"
   echo "[OPTIONAL] Product version"
   echo
 
-  echoBold "Ex: ./setup.sh -p as -t pattern_01"
-  echoBold "Ex: ./setup.sh -p esb -t pattern_01 -v 1.10.0"
+  echoBold "Ex: ./setup.sh -p as "
+  echoBold "Ex: ./setup.sh -p esb -v 4.9.0"
   echo
   exit 1
 }
@@ -74,18 +72,17 @@ function setupModule () {
     # creating symlink for hieradata
     if [ $1 == "base" ];then
         ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
+        echoSuccess "wso2base puppet module installed."
         return
     fi
-    ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1}/${2} ../hieradata/dev/wso2/
+    ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
+    echoSuccess "wso2${product} puppet module installed."
 }
 
-while getopts :p:v:t: FLAG; do
+while getopts :p:v: FLAG; do
   case $FLAG in
     p)
       product=$OPTARG
-      ;;
-    t)
-      pattern=$OPTARG
       ;;
     v)
       version=$OPTARG
@@ -96,7 +93,7 @@ while getopts :p:v:t: FLAG; do
   esac
 done
 
-if [[ -z ${product} ]] || [[ -z ${pattern} ]]; then
+if [[ -z ${product} ]]; then
   showUsageAndExit
 fi
 
@@ -110,8 +107,6 @@ mkdir -p hieradata/dev/wso2
 mkdir -p modules
 cd modules
 setupModule "base"
-echoSuccess "wso2base puppet module installed."
-setupModule ${product} ${pattern}
-echoSuccess "wso2${product} puppet module installed."
+setupModule ${product}
 
 
