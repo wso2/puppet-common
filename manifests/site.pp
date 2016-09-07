@@ -17,7 +17,7 @@
 # ------------------------------------------------------------------------------
 
 node /as\.dev\.wso2\.org/ {
-  if $::use_hieradata {
+  if $::use_hieradata == "true" {
     require wso2base::java
     hiera_include('classes')
 
