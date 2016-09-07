@@ -12,25 +12,19 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
 
 ## How to Use
 
-1. Clone WSO2 Puppet modules Git repository and consider this path as `PUPPET_HOME`:
-
-    ````
-    git clone https://github.com/wso2/puppet-modules.git
-    ````
-
-2. Create server configuration file:
+1. Create server configuration file:
 
     Rename `config.yaml.sample` to `config.yaml` and update the `/servers` section with required values. You can add more instances by adding more entries to `/servers` array. You can pass facters to Vagrant nodes through `/servers/*/facters` array.
 
     Additionally, you can copy a sample `config.yaml` file from the `samples` folder to quickly run a particular product on Vagrant.
 
-3. Download and copy Oracle JDK `1.7_80` distribution to the following path:
+2. Download and copy Oracle JDK `1.7_80` distribution to the following path:
 
     ````
     <PUPPET_HOME>/modules/wso2base/files/jdk-7u80-linux-x64.tar.gz
     ````
 
-4. Download and copy required WSO2 product distributions to each Puppet module under `files` folder:
+3. Download and copy required WSO2 product distributions to each Puppet module under `files` folder:
 
     ````
     <PUPPET_HOME>/modules/wso2esb/files
@@ -38,9 +32,9 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
     <PUPPET_HOME>/modules/wso2as/files
     ````
 
-5. Optionally update `<PUPPET_HOME>/hieradata` with required product configurations. `default` profile every product can be run on Vagrant without any changes to the Hiera data.
+4. Optionally update `<PUPPET_HOME>/hieradata` with required product configurations. `default` profile every product can be run on Vagrant without any changes to the Hiera data.
 
-7. Execute the following command to start the VMs:
+5. Execute the following command to start the VMs:
 
     ````
     vagrant up
