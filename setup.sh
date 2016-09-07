@@ -30,11 +30,12 @@ function showUsageAndExit () {
   echoBold "Options:"
   echo
   echo -en "  -p\t"
-  echo "[REQUIRED] Comma seperated list of product codes. [as,esb,bps,brs,greg,is,apim]"
+  echo "[REQUIRED] Comma seperated list of product codes. [as,esb,bps,brs,greg,is,apim][all]"
   echo
 
   echoBold "Ex: ./setup.sh -p as "
   echoBold "Ex: ./setup.sh -p as,esb,bps "
+  echoBold "Ex: ./setup.sh -p all "
   echo
   exit 1
 }
@@ -97,11 +98,15 @@ if [[ -z ${product_codes} ]]; then
   showUsageAndExit
 fi
 
+if [[ ${product_codes} == "all" ]]; then
+  product_codes="as,esb,bps,brs,das,cep,mb,is,apim,greg"
+fi
+
 if [ -z "$PUPPET_HOME" ]; then
   echoWarn "PUPPET_HOME variable could not be found! Set PUPPET_HOME environment variable pointing to local folder"
   askBold "Enter directory path for PUPPET_HOME : "
-  read -r exec_v
-  PUPPET_HOME=${exec_v}
+  read -r puppet_home_v
+  PUPPET_HOME=${puppet_home_v}
 fi
 validatePuppetHome ${PUPPET_HOME}
 
@@ -110,9 +115,8 @@ pushd ${PUPPET_HOME} > /dev/null
 cp ${self_path}/hiera.yaml .
 
 # Create manifest/site.pp
-mkdir -p manifests
 echoInfo "Creating symlink for site.pp..."
-ln -sf ${self_path}/manifests/site.pp ./manifests/
+ln -sf ${self_path}/manifests/ .
 
 # Create folder structure
 mkdir -p files/packs
