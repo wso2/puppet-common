@@ -20,16 +20,18 @@ require 'fileutils'
 
 # load server config from YAML file
 CONFIGURATION_YAML = YAML.load_file('config.yaml')
-PUPPET_HOME = ENV['PUPPET_HOME'] || exit(1)
-HIERA_HOME = ENV['HIERA_HOME'] || File.join(PUPPET_HOME, 'hieradata')
+PUPPET_HOME = ENV['PUPPET_HOME']
+if PUPPET_HOME == nil
+  puts 'ERROR! PUPPET_HOME is not defined.'
+  exit(1)
+end
+HIERADATA_PATH = ENV['HIERA_HOME'] || File.join(PUPPET_HOME, 'hieradata')
+PUPPET_FILESERVER_PATH = File.join(PUPPET_HOME, 'files')
 
 $puppet_lib_install_script = <<EOF
    mkdir -p /etc/puppet/modules;
    if [ ! -d /etc/puppet/modules/stdlib ]; then
       puppet module install puppetlabs/stdlib
-   fi
-   if [ ! -d /etc/puppet/modules/java ]; then
-      puppet module install 7terminals-java
    fi
    mkdir -p /etc/facter/facts.d/
    public_ip=$(ip route get 192.168.100.1 | awk '{print $NF;exit}')
@@ -37,7 +39,8 @@ $puppet_lib_install_script = <<EOF
 EOF
 
 puts "PUPPET_HOME set to #{PUPPET_HOME}"
-puts "HIERA_HOME set to #{HIERA_HOME}"
+puts "HIERADATA_PATH set to #{HIERADATA_PATH}"
+puts "PUPPET_FILESERVER_PATH set to #{PUPPET_FILESERVER_PATH}"
 
 Vagrant.configure(2) do |config|
   CONFIGURATION_YAML['servers'].each do |server|
@@ -47,8 +50,8 @@ Vagrant.configure(2) do |config|
         server_config.vm.box = server['box']
         server_config.vm.host_name = server['hostname']
         server_config.vm.network :private_network, ip: server['ip']
-        server_config.vm.synced_folder PUPPET_HOME + "/hieradata", "/puppet/hieradata",
-         type: "rsync", rsync__args: ["--verbose", "--archive", "--delete", "-z"]
+        server_config.vm.synced_folder HIERADATA_PATH, '/puppet/hieradata', id: 'hieradata', type: 'rsync'
+        server_config.vm.synced_folder PUPPET_FILESERVER_PATH, '/puppet/files', id: 'puppet_fileserver'
         memory = server['ram'] ? server['ram'] : 256
         cpu = server['cpu'] ? server['cpu'] : 1
 
@@ -72,7 +75,7 @@ Vagrant.configure(2) do |config|
           puppet.module_path = File.join(PUPPET_HOME, 'modules')
           puppet.hiera_config_path = File.join(PUPPET_HOME, 'hiera.yaml')
           puppet.working_directory = '/puppet'
-          puppet.options = ['--verbose']
+          puppet.options = %w(--verbose --fileserverconfig=/vagrant/fileserver.conf --debug --trace)
 
           # custom facts provided to Puppet
           puppet.facter = server['facters']
