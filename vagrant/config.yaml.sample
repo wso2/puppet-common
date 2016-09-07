@@ -23,6 +23,8 @@ servers:
       product_profile: default
       environment: dev
       platform: default
+      use_hieradata: true
+      pattern: pattern_01
     box: ubuntu/trusty64
     ip: 192.168.100.2
     ram: 2048
