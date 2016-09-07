@@ -115,7 +115,7 @@ echoInfo "Creating symlink for site.pp..."
 ln -sf ${self_path}/manifests/site.pp ./manifests/
 
 # Create folder structure
-mkdir -p files
+mkdir -p files/packs
 mkdir -p hieradata/dev/wso2
 mkdir -p modules
 cd modules
