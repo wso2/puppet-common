@@ -30,22 +30,21 @@ function showUsageAndExit () {
   echoBold "Options:"
   echo
   echo -en "  -p\t"
-  echo "[REQUIRED] Product code. [as,esb,bps,brs,greg,is,apim]"
-  echo -en "  -v\t"
-  echo "[OPTIONAL] Product version"
+  echo "[REQUIRED] Comma seperated list of product codes. [as,esb,bps,brs,greg,is,apim]"
   echo
 
   echoBold "Ex: ./setup.sh -p as "
-  echoBold "Ex: ./setup.sh -p esb -v 4.9.0"
+  echoBold "Ex: ./setup.sh -p as,esb,bps "
   echo
   exit 1
 }
 
 function validatePuppetHome () {
-    if [ -z "$PUPPET_HOME" ]; then
-        echoError "PUPPET_HOME variable could not be found! Set PUPPET_HOME environment variable pointing to local folder"
+    if [ ! -d "${1}" ]; then
+        echoError "Invalid path provided for [PUPPET_HOME] ${1}"
         exit 1
     fi
+    export PUPPET_HOME=${1}
     if [ "$(ls -A $PUPPET_HOME)" ]; then
         echoDim "[PUPPET_HOME] $PUPPET_HOME directory is not empty. Continuing..."
     fi
@@ -55,16 +54,20 @@ function setupModule () {
 
     echoInfo "Setting up wso2${1} puppet module..."
     if [ -d wso2${1} ]; then
-        echoWarn "${PUPPET_HOME}/modules/wso2-${1} directory is not empty."
+        echoWarn "${PUPPET_HOME}/modules/wso2-${1} directory exists."
         echoWarn "Not cloning..."
         return
     fi
+
+    # Clone repository
     curl -s --head https://github.com/wso2/puppet-${1} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
     if [ $? -ne 0 ]; then
         echoError "URL [https://github.com/wso2/puppet-${1}] is not reachable."
         exit 1
     fi
     git clone https://github.com/wso2/puppet-${1}
+    # TODO: Checkout released product version tag.
+
     mv puppet-${1} wso2${1}
 
     echoInfo "Creating symlink for hieradata..."
@@ -76,16 +79,13 @@ function setupModule () {
         return
     fi
     ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
-    echoSuccess "wso2${product} puppet module installed."
+    echoSuccess "wso2${1} puppet module installed."
 }
 
-while getopts :p:v: FLAG; do
+while getopts :p: FLAG; do
   case $FLAG in
     p)
-      product=$OPTARG
-      ;;
-    v)
-      version=$OPTARG
+      product_codes=$OPTARG
       ;;
     \?)
       showUsageAndExit
@@ -93,20 +93,36 @@ while getopts :p:v: FLAG; do
   esac
 done
 
-if [[ -z ${product} ]]; then
+if [[ -z ${product_codes} ]]; then
   showUsageAndExit
 fi
 
-validatePuppetHome
+if [ -z "$PUPPET_HOME" ]; then
+  echoWarn "PUPPET_HOME variable could not be found! Set PUPPET_HOME environment variable pointing to local folder"
+  askBold "Enter directory path for PUPPET_HOME : "
+  read -r exec_v
+  PUPPET_HOME=${exec_v}
+fi
+validatePuppetHome ${PUPPET_HOME}
+
 echoInfo "Starting setup..."
 pushd ${PUPPET_HOME} > /dev/null
 cp ${self_path}/hiera.yaml .
-cp -a ${self_path}/manifests .
 
+# Create manifest/site.pp
+mkdir -p manifests
+echoInfo "Creating symlink for site.pp..."
+ln -sf ${self_path}/manifests/site.pp ./manifests/
+
+# Create folder structure
+mkdir -p files
 mkdir -p hieradata/dev/wso2
 mkdir -p modules
 cd modules
+
+# Setting up modules
 setupModule "base"
-setupModule ${product}
-
-
+IFS=',' read -r -a products_array <<< "${product_codes}"
+for product in "${products_array[@]}"; do
+    setupModule ${product}
+done
