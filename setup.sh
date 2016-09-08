@@ -75,11 +75,11 @@ function setupModule () {
     current_dir=`pwd`
     # creating symlink for hieradata
     if [ $1 == "base" ];then
-        ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
+        ln -sf  ${current_dir}/wso2${1}/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
         echoSuccess "wso2base puppet module installed."
         return
     fi
-    ln -s  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
+    ln -sf  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
     echoSuccess "wso2${1} puppet module installed."
 }
 
@@ -109,7 +109,7 @@ if [ -z "$PUPPET_HOME" ]; then
   PUPPET_HOME=${puppet_home_v}
 fi
 validatePuppetHome ${PUPPET_HOME}
-
+echoInfo "Configuring [PUPPET_HOME] ${PUPPET_HOME}..."
 echoInfo "Starting setup..."
 pushd ${PUPPET_HOME} > /dev/null
 cp ${self_path}/hiera.yaml .
@@ -130,3 +130,5 @@ IFS=',' read -r -a products_array <<< "${product_codes}"
 for product in "${products_array[@]}"; do
     setupModule ${product}
 done
+
+echoInfo "Setting up puppet modules completed. Please copy relevant distributions."

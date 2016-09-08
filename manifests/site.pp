@@ -25,3 +25,13 @@ node /as\.dev\.wso2\.org/ {
     class { '::wso2base::java': } -> class { '::wso2as': }
   }
 }
+
+node /esb\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2esb': }
+  }
+}
