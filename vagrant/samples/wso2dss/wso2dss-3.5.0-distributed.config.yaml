@@ -23,6 +23,8 @@ servers:
       product_profile: manager
       environment: dev
       platform: default
+      use_hieradata: true
+      pattern: pattern-2
     box: ubuntu/trusty64
     ip: 192.168.100.71
     ram: 2048
@@ -37,6 +39,8 @@ servers:
       product_profile: worker
       environment: dev
       platform: default
+      use_hieradata: true
+      pattern: pattern-2
     box: ubuntu/trusty64
     ip: 192.168.100.72
     ram: 2048
