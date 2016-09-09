@@ -38,6 +38,8 @@ servers:
 #     product_version: version
 #     product_profile: profile
 #     environment: dev
+#     use_hieradata: true
+#     pattern: pattern_01
 #   box: ubuntu/trusty64
 #   ip: 192.168.100.3
 #   ram: 2048

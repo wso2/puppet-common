@@ -36,6 +36,15 @@ node /esb\.dev\.wso2\.org/ {
   }
 }
 
+node /brs\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2brs': }
+  }
+}
 node /dss\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java

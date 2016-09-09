@@ -19,10 +19,12 @@ servers:
     hostname: mgt.brs.dev.wso2.org
     facters:
       product_name: wso2brs
-      product_version: 2.2.0
+      product_version: 2.1.0
       product_profile: manager
       environment: dev
       platform: default
+      use_hieradata: true
+      pattern: pattern-2
     box: ubuntu/trusty64
     ip: 192.168.100.41
     ram: 2048
@@ -33,10 +35,12 @@ servers:
     hostname: brs.dev.wso2.org
     facters:
       product_name: wso2brs
-      product_version: 2.2.0
+      product_version: 2.1.0
       product_profile: worker
       environment: dev
       platform: default
+      use_hieradata: true
+      pattern: pattern-2
     box: ubuntu/trusty64
     ip: 192.168.100.42
     ram: 2048
