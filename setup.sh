@@ -27,17 +27,19 @@ declare -A product_name_to_module_repo_map=( [wso2esb]=puppet-esb [wso2am]=puppe
 function showUsageAndExit() {
   echoError "Insufficient or invalid options provided!"
   echo
-  echoBold "Usage: ./setup.sh -p [product-name]"
+  echoBold "Usage: ./setup.sh -p [product-name] -l [platform]"
   echo
 
   echoBold "Options:"
   echo
   echo -en "  -p\t"
   echo "[REQUIRED] Comma separated list of product codes. [as,esb,bps,brs,greg,is,apim][all]"
+  echo -en "  -p\t"
+  echo "[OPTIONAL] Platform to setup Hiera data. If none given 'default' platform will be taken"
   echo
 
-  echoBold "Ex: ./setup.sh -p as "
-  echoBold "Ex: ./setup.sh -p as,esb,bps "
+  echoBold "Ex: ./setup.sh -p esb "
+  echoBold "Ex: ./setup.sh -p esb,apim -l kubernetes"
   echoBold "Ex: ./setup.sh -p all "
   echo
   exit 1
@@ -57,8 +59,10 @@ function validatePuppetHome() {
 # Setup Puppet module for given wso2 product
 # $1 - Puppet module name (equivalent to product name)
 # $2 - Puppet module GitHub repo name
+# $3 - product code
+# $4 - platform
 function setupModule() {
-  echoInfo "Setting up ${1} Puppet module..."
+  echoInfo "Setting up ${1} Puppet module for ${4} platform..."
   if [ -d "${PUPPET_HOME}/modules/${1}" ]; then
     echoWarn "${PUPPET_HOME}/modules/${1} directory exists. Skipping..."
     return
@@ -77,17 +81,37 @@ function setupModule() {
 
   echoInfo "Creating symlink for Hiera data..."
   if [[ ${1} == "wso2base" ]];then
-    ln -sf  ${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml ${PUPPET_HOME}/hieradata/dev/wso2/
-  else
-    ln -sf  ${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/${1} ${PUPPET_HOME}/hieradata/dev/wso2/
+    ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${4} platform."
+    return
   fi
-  echoSuccess "Successfully installed ${1} puppet module."
+
+  if [[ ${4} == "default" ]]; then
+    ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/${1}" "${PUPPET_HOME}/hieradata/dev/wso2/"
+  else
+    mkdir -p "${PUPPET_HOME}/${4}/"
+    platform_artifacts_url="https://github.com/wso2/${4}-${3}"
+    curl -s --head ${platform_artifacts_url} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
+    if [ $? -ne 0 ]; then
+      echoError "[URL] ${platform_artifacts_url} is not reachable."
+      echoError "Failed to setup Hiera data for ${4} platform"
+      exit 1
+    fi
+    git clone ${platform_artifacts_url} "${PUPPET_HOME}/${4}/${4}-${3}"
+    ln -sf  "${PUPPET_HOME}/${4}/${4}-${3}/hieradata/dev/wso2/${1}" ${PUPPET_HOME}/hieradata/dev/wso2/
+  fi
+
+  echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${4} platform."
 }
 
-while getopts :p: FLAG; do
+platform='default'
+while getopts :p:l: FLAG; do
   case ${FLAG} in
     p)
       product_code=$OPTARG
+      ;;
+    l)
+      platform=$OPTARG
       ;;
     \?)
       showUsageAndExit
@@ -127,19 +151,21 @@ mkdir -p ${PUPPET_HOME}/hieradata/dev/wso2
 mkdir -p ${PUPPET_HOME}/modules
 
 # Setup wso2base Puppet module
-setupModule "wso2base" "puppet-base"
+setupModule "wso2base" "puppet-base" "base" "default"
 
 # Setup Puppet modules for specified products
 if [[ ${product_code} == "all" ]]; then
   for K in "${!product_code_to_name_map[@]}"; do
-    product_name_array=("$product_name_array" ${K})
+    echo "ZZZ: ${K}"
+    product_code_array=("$product_code_array" ${K})
   done
 else
-  product_name_array=(${product_code_to_name_map[$product_code]})
+  product_code_array=( ${product_code} )
 fi
 
-for product_name in "${product_name_array[@]}"; do
-  setupModule ${product_name} "${product_name_to_module_repo_map[$product_name]}"
+for product_code in "${product_code_array[@]}"; do
+  product_name="${product_code_to_name_map[$product_code]}"
+  setupModule ${product_name} "${product_name_to_module_repo_map[$product_name]}" ${product_code} ${platform}
 done
 
 echoInfo "Setup completed successfully. Please copy relevant distributions to Puppet file bucket."
