@@ -16,21 +16,24 @@
 # limitations under the License
 
 # ------------------------------------------------------------------------
-
+set -e
 self_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${self_path}/scripts/base.sh"
 
+declare -A product_code_to_name_map=( [esb]=wso2esb [apim]=wso2am [is]=wso2is [das]=wso2das )
+declare -A product_name_to_module_repo_map=( [wso2esb]=puppet-esb [wso2am]=puppet-apim [wso2is]=puppet-is [wso2das]=puppet-das )
+
 # Show usage and exit
-function showUsageAndExit () {
+function showUsageAndExit() {
   echoError "Insufficient or invalid options provided!"
   echo
-  echoBold "Usage: ./setup.sh -p [product-name] -t [pattern]"
+  echoBold "Usage: ./setup.sh -p [product-name]"
   echo
 
   echoBold "Options:"
   echo
   echo -en "  -p\t"
-  echo "[REQUIRED] Comma seperated list of product codes. [as,esb,bps,brs,greg,is,apim][all]"
+  echo "[REQUIRED] Comma separated list of product codes. [as,esb,bps,brs,greg,is,apim][all]"
   echo
 
   echoBold "Ex: ./setup.sh -p as "
@@ -40,53 +43,51 @@ function showUsageAndExit () {
   exit 1
 }
 
-function validatePuppetHome () {
-    if [ ! -d "${1}" ]; then
-        echoError "Invalid path provided for [PUPPET_HOME] ${1}"
-        exit 1
-    fi
-    export PUPPET_HOME=${1}
-    if [ "$(ls -A $PUPPET_HOME)" ]; then
-        echoDim "[PUPPET_HOME] $PUPPET_HOME directory is not empty. Continuing..."
-    fi
+function validatePuppetHome() {
+  if [ ! -d "${1}" ]; then
+    echoError "Invalid path provided for [PUPPET_HOME] ${1}"
+    exit 1
+  fi
+  export PUPPET_HOME=${1}
+  if [ "$(ls -A ${PUPPET_HOME})" ]; then
+    echoDim "[PUPPET_HOME] $PUPPET_HOME directory is not empty. Continuing..."
+  fi
 }
 
-function setupModule () {
+# Setup Puppet module for given wso2 product
+# $1 - Puppet module name (equivalent to product name)
+# $2 - Puppet module GitHub repo name
+function setupModule() {
+  echoInfo "Setting up ${1} Puppet module..."
+  if [ -d "${PUPPET_HOME}/modules/${1}" ]; then
+    echoWarn "${PUPPET_HOME}/modules/${1} directory exists. Skipping..."
+    return
+  fi
 
-    echoInfo "Setting up wso2${1} puppet module..."
-    if [ -d wso2${1} ]; then
-        echoWarn "${PUPPET_HOME}/modules/wso2-${1} directory exists."
-        echoWarn "Not cloning..."
-        return
-    fi
+  # clone repository
+  puppet_git_url="https://github.com/wso2/${2}"
+  curl -s --head ${puppet_git_url} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
+  if [ $? -ne 0 ]; then
+    echoError "[URL] ${puppet_git_url} is not reachable."
+    echoError "Failed to setup PUPPET_HOME"
+    exit 1
+  fi
+  git clone ${puppet_git_url} "${PUPPET_HOME}/modules/${1}"
+  # TODO: Checkout released product version tag.
 
-    # Clone repository
-    curl -s --head https://github.com/wso2/puppet-${1} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
-    if [ $? -ne 0 ]; then
-        echoError "URL [https://github.com/wso2/puppet-${1}] is not reachable."
-        exit 1
-    fi
-    git clone https://github.com/wso2/puppet-${1}
-    # TODO: Checkout released product version tag.
-
-    mv puppet-${1} wso2${1}
-
-    echoInfo "Creating symlink for hieradata..."
-    current_dir=`pwd`
-    # creating symlink for hieradata
-    if [ $1 == "base" ];then
-        ln -sf  ${current_dir}/wso2${1}/hieradata/dev/wso2/common.yaml ../hieradata/dev/wso2/
-        echoSuccess "wso2base puppet module installed."
-        return
-    fi
-    ln -sf  ${current_dir}/wso2${1}/hieradata/dev/wso2/wso2${1} ../hieradata/dev/wso2/
-    echoSuccess "wso2${1} puppet module installed."
+  echoInfo "Creating symlink for Hiera data..."
+  if [[ ${1} == "wso2base" ]];then
+    ln -sf  ${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml ${PUPPET_HOME}/hieradata/dev/wso2/
+  else
+    ln -sf  ${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/${1} ${PUPPET_HOME}/hieradata/dev/wso2/
+  fi
+  echoSuccess "Successfully installed ${1} puppet module."
 }
 
 while getopts :p: FLAG; do
-  case $FLAG in
+  case ${FLAG} in
     p)
-      product_codes=$OPTARG
+      product_code=$OPTARG
       ;;
     \?)
       showUsageAndExit
@@ -94,41 +95,51 @@ while getopts :p: FLAG; do
   esac
 done
 
-if [[ -z ${product_codes} ]]; then
+if [[ -z ${product_code} ]]; then
   showUsageAndExit
 fi
 
-if [[ ${product_codes} == "all" ]]; then
-  product_codes="as,esb,bps,brs,das,cep,mb,is,apim,greg"
+if [[ ${product_code} != "all" && ${product_code_to_name_map[$product_code]+_} == "" ]]; then
+  echoError "Entered product code ${product_code} is not supported"
+  showUsageAndExit
 fi
 
 if [ -z "$PUPPET_HOME" ]; then
-  echoWarn "PUPPET_HOME variable could not be found! Set PUPPET_HOME environment variable pointing to local folder"
-  askBold "Enter directory path for PUPPET_HOME : "
+  echoWarn "PUPPET_HOME is not set as an environment variable, prompting for input..."
+  askBold "Enter directory path for PUPPET_HOME: "
   read -r puppet_home_v
   PUPPET_HOME=${puppet_home_v}
 fi
-validatePuppetHome ${PUPPET_HOME}
-echoInfo "Configuring [PUPPET_HOME] ${PUPPET_HOME}..."
-echoInfo "Starting setup..."
-pushd ${PUPPET_HOME} > /dev/null
-cp ${self_path}/hiera.yaml .
 
-# Create manifest/site.pp
+validatePuppetHome ${PUPPET_HOME}
+echoInfo "Setting up [PUPPET_HOME] ${PUPPET_HOME}..."
+
+# Copy Hiera configuration file
+cp ${self_path}/hiera.yaml ${PUPPET_HOME}
+
+# Create symlink for manifest/site.pp
 echoInfo "Creating symlink for site.pp..."
-ln -sf ${self_path}/manifests/ .
+ln -sf ${self_path}/manifests ${PUPPET_HOME}/
 
 # Create folder structure
-mkdir -p files/packs
-mkdir -p hieradata/dev/wso2
-mkdir -p modules
-cd modules
+mkdir -p ${PUPPET_HOME}/files/packs
+mkdir -p ${PUPPET_HOME}/hieradata/dev/wso2
+mkdir -p ${PUPPET_HOME}/modules
 
-# Setting up modules
-setupModule "base"
-IFS=',' read -r -a products_array <<< "${product_codes}"
-for product in "${products_array[@]}"; do
-    setupModule ${product}
+# Setup wso2base Puppet module
+setupModule "wso2base" "puppet-base"
+
+# Setup Puppet modules for specified products
+if [[ ${product_code} == "all" ]]; then
+  for K in "${!product_code_to_name_map[@]}"; do
+    product_name_array=("$product_name_array" ${K})
+  done
+else
+  product_name_array=(${product_code_to_name_map[$product_code]})
+fi
+
+for product_name in "${product_name_array[@]}"; do
+  setupModule ${product_name} "${product_name_to_module_repo_map[$product_name]}"
 done
 
-echoInfo "Setting up puppet modules completed. Please copy relevant distributions."
+echoInfo "Setup completed successfully. Please copy relevant distributions to Puppet file bucket."
