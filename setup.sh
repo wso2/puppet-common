@@ -20,8 +20,8 @@ set -e
 self_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${self_path}/scripts/base.sh"
 
-declare -a product_code_to_name_map=( [esb]=wso2esb [apim]=wso2am [is]=wso2is [das]=wso2das )
-declare -a product_name_to_module_repo_map=( [wso2esb]=puppet-esb [wso2am]=puppet-apim [wso2is]=puppet-is [wso2das]=puppet-das )
+declare -A product_code_to_name_map=( [esb]=wso2esb [apim]=wso2am [is]=wso2is [das]=wso2das )
+declare -A product_name_to_module_repo_map=( [wso2esb]=puppet-esb [wso2am]=puppet-apim [wso2is]=puppet-is [wso2das]=puppet-das )
 
 # Show usage and exit
 function showUsageAndExit() {
