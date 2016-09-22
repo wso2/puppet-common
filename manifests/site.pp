@@ -45,6 +45,7 @@ node /brs\.dev\.wso2\.org/ {
     class { '::wso2base::java': } -> class { '::wso2brs': }
   }
 }
+
 node /dss\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
