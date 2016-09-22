@@ -20,7 +20,7 @@ set -e
 self_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${self_path}/scripts/base.sh"
 
-function getProductCode() {
+function getProductName() {
   case ${1} in
     esb)
       product_name="wso2esb"
@@ -173,7 +173,7 @@ else
 fi
 
 for product_code in "${product_code_array[@]}"; do
-  getProductCode ${product_code}
+  getProductName ${product_code}
   setupModule ${product_name} ${product_code} ${platform}
 done
 
