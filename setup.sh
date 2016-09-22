@@ -20,8 +20,26 @@ set -e
 self_path=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "${self_path}/scripts/base.sh"
 
-declare -A product_code_to_name_map=( [esb]=wso2esb [apim]=wso2am [is]=wso2is [das]=wso2das )
-declare -A product_name_to_module_repo_map=( [wso2esb]=puppet-esb [wso2am]=puppet-apim [wso2is]=puppet-is [wso2das]=puppet-das )
+function getProductCode() {
+  case ${1} in
+    esb)
+      product_name="wso2esb"
+      ;;
+    apim)
+      product_name="wso2am"
+      ;;
+    is)
+      product_name="wso2is"
+      ;;
+    das)
+      product_name="wso2das"
+      ;;
+
+    \?)
+      product_name=""
+      ;;
+  esac
+}
 
 # Show usage and exit
 function showUsageAndExit() {
@@ -33,7 +51,7 @@ function showUsageAndExit() {
   echoBold "Options:"
   echo
   echo -en "  -p\t"
-  echo "[REQUIRED] Comma separated list of product codes. [as,esb,bps,brs,greg,is,apim][all]"
+  echo "[REQUIRED] Comma separated list of product codes. [esb,is,apim,das][all]"
   echo -en "  -p\t"
   echo "[OPTIONAL] Platform to setup Hiera data. If none given 'default' platform will be taken"
   echo
@@ -58,18 +76,17 @@ function validatePuppetHome() {
 
 # Setup Puppet module for given wso2 product
 # $1 - Puppet module name (equivalent to product name)
-# $2 - Puppet module GitHub repo name
-# $3 - product code
-# $4 - platform
+# $2 - product code
+# $3 - platform
 function setupModule() {
-  echoInfo "Setting up ${1} Puppet module for ${4} platform..."
+  echoInfo "Setting up ${1} Puppet module for ${3} platform..."
   if [ -d "${PUPPET_HOME}/modules/${1}" ]; then
     echoWarn "${PUPPET_HOME}/modules/${1} directory exists. Skipping..."
     return
   fi
 
   # clone repository
-  puppet_git_url="https://github.com/wso2/${2}"
+  puppet_git_url="https://github.com/wso2/puppet-${2}"
   curl -s --head ${puppet_git_url} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
   if [ $? -ne 0 ]; then
     echoError "[URL] ${puppet_git_url} is not reachable."
@@ -86,29 +103,29 @@ function setupModule() {
     return
   fi
 
-  if [[ ${4} == "default" ]]; then
+  if [[ ${3} == "default" ]]; then
     ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/${1}" "${PUPPET_HOME}/hieradata/dev/wso2/"
   else
-    mkdir -p "${PUPPET_HOME}/${4}/"
-    platform_artifacts_url="https://github.com/wso2/${4}-${3}"
+    mkdir -p "${PUPPET_HOME}/${3}/"
+    platform_artifacts_url="https://github.com/wso2/${3}-${2}"
     curl -s --head ${platform_artifacts_url} | head -n 1 | grep "HTTP/1.[01] [23].." > /dev/null
     if [ $? -ne 0 ]; then
       echoError "[URL] ${platform_artifacts_url} is not reachable."
       echoError "Failed to setup Hiera data for ${4} platform"
       exit 1
     fi
-    git clone ${platform_artifacts_url} "${PUPPET_HOME}/${4}/${4}-${3}"
-    ln -sf  "${PUPPET_HOME}/${4}/${4}-${3}/hieradata/dev/wso2/${1}" ${PUPPET_HOME}/hieradata/dev/wso2/
+    git clone ${platform_artifacts_url} "${PUPPET_HOME}/${3}/${3}-${2}"
+    ln -sf  "${PUPPET_HOME}/${3}/${3}-${2}/hieradata/dev/wso2/${1}" ${PUPPET_HOME}/hieradata/dev/wso2/
   fi
 
-  echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${4} platform."
+  echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${3} platform."
 }
 
 platform='default'
 while getopts :p:l: FLAG; do
   case ${FLAG} in
     p)
-      product_code=$OPTARG
+      product_codes=$OPTARG
       ;;
     l)
       platform=$OPTARG
@@ -119,12 +136,7 @@ while getopts :p:l: FLAG; do
   esac
 done
 
-if [[ -z ${product_code} ]]; then
-  showUsageAndExit
-fi
-
-if [[ ${product_code} != "all" && ${product_code_to_name_map[$product_code]+_} == "" ]]; then
-  echoError "Entered product code ${product_code} is not supported"
+if [[ -z ${product_codes} ]]; then
   showUsageAndExit
 fi
 
@@ -151,21 +163,18 @@ mkdir -p ${PUPPET_HOME}/hieradata/dev/wso2
 mkdir -p ${PUPPET_HOME}/modules
 
 # Setup wso2base Puppet module
-setupModule "wso2base" "puppet-base" "base" "default"
+setupModule "wso2base" "base" "default"
 
 # Setup Puppet modules for specified products
-if [[ ${product_code} == "all" ]]; then
-  for K in "${!product_code_to_name_map[@]}"; do
-    echo "ZZZ: ${K}"
-    product_code_array=("$product_code_array" ${K})
-  done
+if [[ ${product_codes} == "all" ]]; then
+  IFS=',' read -r -a product_code_array <<< "apim,das,esb,is"
 else
-  product_code_array=( ${product_code} )
+  IFS=',' read -r -a product_code_array <<< "${product_codes}"
 fi
 
 for product_code in "${product_code_array[@]}"; do
-  product_name="${product_code_to_name_map[$product_code]}"
-  setupModule ${product_name} "${product_name_to_module_repo_map[$product_name]}" ${product_code} ${platform}
+  getProductCode ${product_code}
+  setupModule ${product_name} ${product_code} ${platform}
 done
 
 echoInfo "Setup completed successfully. Please copy relevant distributions to Puppet file bucket."
