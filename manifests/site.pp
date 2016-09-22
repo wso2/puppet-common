@@ -16,6 +16,7 @@
 #
 # ------------------------------------------------------------------------------
 
+# Applications server node definitions
 node /as\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -26,6 +27,7 @@ node /as\.dev\.wso2\.org/ {
   }
 }
 
+# Enterprise Service Bus node definitions
 node /esb\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -36,6 +38,7 @@ node /esb\.dev\.wso2\.org/ {
   }
 }
 
+# Business Rule Server node definitions
 node /brs\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -46,6 +49,7 @@ node /brs\.dev\.wso2\.org/ {
   }
 }
 
+# DSS Node deifintions
 node /dss\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -56,7 +60,58 @@ node /dss\.dev\.wso2\.org/ {
   }
 }
 
+# API Manager Node deifintions
 node /am\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+node /km\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+node /store\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+node /pub\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+node /gw\.dev\.wso2\.org/ {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+node /mgt\.gw\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
     hiera_include('classes')

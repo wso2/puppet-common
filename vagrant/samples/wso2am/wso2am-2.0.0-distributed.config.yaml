@@ -48,7 +48,7 @@ servers:
 
   -
     enabled: true
-    hostname: publisher.dev.wso2.org
+    hostname: pub.dev.wso2.org
     facters:
       product_name: wso2am
       product_version: 2.0.0
@@ -77,6 +77,22 @@ servers:
     ip: 192.168.100.5
     ram: 2048
     cpu: 1
+
+    -
+     enabled: true
+     hostname: mgt.gw.dev.wso2.org
+     facters:
+       product_name: wso2am
+       product_version: 2.0.0
+       product_profile: gateway-manager
+       environment: dev
+       platform: default
+       use_hieradata: true
+       pattern: pattern-2
+     box: ubuntu/trusty64
+     ip: 192.168.100.5
+     ram: 2048
+     cpu: 1
 
     -
      enabled: true
