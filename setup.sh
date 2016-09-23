@@ -99,7 +99,7 @@ function setupModule() {
   echoInfo "Creating symlink for Hiera data..."
   if [[ ${1} == "wso2base" ]];then
     ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml" "${PUPPET_HOME}/hieradata/dev/wso2/"
-    echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${4} platform."
+    echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${3} platform."
     return
   fi
 
