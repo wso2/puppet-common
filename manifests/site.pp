@@ -49,7 +49,7 @@ node /brs\.dev\.wso2\.org/ {
   }
 }
 
-# DSS Node deifintions
+# Data Services Server node deifintions
 node /dss\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -60,7 +60,7 @@ node /dss\.dev\.wso2\.org/ {
   }
 }
 
-# API Manager Node deifintions
+# API Manager node deifintions
 node /am\.dev\.wso2\.org/ {
   if $::use_hieradata == "true" {
     require wso2base::java
@@ -118,5 +118,16 @@ node /mgt\.gw\.dev\.wso2\.org/ {
 
   } else {
     class { '::wso2base::java': } -> class { '::wso2am': }
+  }
+}
+
+# Default node definition (i.e. if the hostname does not match this section will be executed)
+node "default" {
+  if $::use_hieradata == "true" {
+    require wso2base::java
+    hiera_include('classes')
+
+  } else {
+    class { '::wso2base::java': } -> class { "::${::product_name}": }
   }
 }
