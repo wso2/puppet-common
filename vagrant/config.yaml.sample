@@ -16,7 +16,7 @@
 servers:
   -
     enabled: true
-    hostname: wso2esb.4.9.0.dev.wso2.org
+    hostname: esb.dev.wso2.org
     facters:
       product_name: wso2esb
       product_version: 4.9.0
@@ -32,7 +32,7 @@ servers:
 
 # -
 #   enabled: false
-#   hostname: wso2product.version.dev.wso2.org
+#   hostname: product.dev.wso2.org
 #   facters:
 #     product_name: wso2product
 #     product_version: version
