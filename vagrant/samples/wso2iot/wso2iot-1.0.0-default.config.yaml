@@ -1,0 +1,16 @@
+servers:
+  -
+    enabled: true
+    hostname: iot.dev.wso2.org
+    facters:
+      product_name: wso2iot
+      product_version: 1.0.0
+      product_profile: default
+      environment: dev
+      platform: default
+      use_hieradata: true
+      pattern: pattern-1
+    box: ubuntu/trusty64
+    ip: 192.168.100.141
+    ram: 2048
+    cpu: 1

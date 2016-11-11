@@ -34,7 +34,9 @@ function getProductName() {
     das)
       product_name="wso2das"
       ;;
-
+    iot)
+      product_name="wso2iot"
+      ;;
     \?)
       product_name=""
       ;;
