@@ -1,6 +1,27 @@
 # WSO2 Puppet Common
 
-This repository contains following Puppet common files:
-- Puppet site manifest; site.pp file for setting up a Puppet server with WSO2 puppet modules.
-- The setup.sh bash script for setting up a PUPPET_HOME directory for Puppet module development work.
-- A vagrant script for testing Puppet modules in a local machine.
+WSO2 Puppet Common repository provides files required for setting up a Puppet environment:
+
+- [manifests/site.pp](manifests/site.pp): Puppet site manifest
+- [scripts/base.sh](scripts/base.sh): Base bash script file which provides utility bash methods.
+- [setup.sh](setup.sh): The setup bash script for setting up a puppet environment for development work.
+- [vagrant](vagrant) A vagrant script for testing Puppet modules using VirtualBox.
+
+## Getting Started
+
+Execute setup.sh to prepare a Puppet environment:
+
+```
+Usage: ./setup.sh -p [product-name] -l [platform]
+
+Options:
+
+  -p	[REQUIRED] Comma separated list of product codes. [esb,is,apim,das][all]
+  -l	[OPTIONAL] Platform to setup Hiera data. If none given 'default' platform will be taken
+  -v	[OPTIONAL] Product version. If none given latest version will be taken. Multiple products not supported.
+
+Ex: ./setup.sh -p esb
+Ex: ./setup.sh -p esb -v 4.9.0
+Ex: ./setup.sh -p esb,apim -l kubernetes
+Ex: ./setup.sh -p all
+```
