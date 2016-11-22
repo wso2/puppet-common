@@ -32,9 +32,6 @@
         </license>
     </licenses>
 
-    <modules>
-    </modules>
-
     <build>
         <plugins>
             <plugin>
