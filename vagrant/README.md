@@ -16,7 +16,7 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
 
     Rename `config.yaml.sample` to `config.yaml` and update the `/servers` section with required values. You can add more instances by adding more entries to `/servers` array. You can pass facters to Vagrant nodes through `/servers/*/facters` array.
 
-    Additionally, you can copy a sample `config.yaml` file from the `samples` folder to quickly run a particular product on Vagrant.
+    Additionally, you can copy a sample `config.yaml` file from the `vagrant-samples` folder found in puppet-<product> repository for quickly running a product on Vagrant.
 
 2. Download and copy Oracle JDK `1.7_80` distribution to the following path:
 
@@ -28,8 +28,7 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
 
     ````
     <PUPPET_HOME>/modules/wso2esb/files
-    <PUPPET_HOME>/modules/wso2am/files
-    <PUPPET_HOME>/modules/wso2as/files
+    <PUPPET_HOME>/modules/wso2is/files
     ````
 
 4. Optionally update `<PUPPET_HOME>/hieradata` with required product configurations. `default` profile every product can be run on Vagrant without any changes to the Hiera data.
@@ -39,5 +38,3 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
     ````
     vagrant up
     ````
-
-For more information refer the [wiki](https://github.com/wso2/puppet-modules/wiki) page.
