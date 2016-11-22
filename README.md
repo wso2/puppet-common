@@ -11,7 +11,7 @@ WSO2 Puppet Common repository provides files required for setting up a Puppet en
 
 Execute setup.sh to prepare a Puppet environment:
 
-```
+```bash
 Usage: ./setup.sh -p [product-name] -l [platform]
 
 Options:
