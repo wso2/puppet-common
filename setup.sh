@@ -219,7 +219,7 @@ setupModule "wso2base" "base" "default"
 
 # Setup Puppet modules for specified products
 if [[ ${product_codes} == "all" ]]; then
-  IFS=',' read -r -a product_code_array <<< "apim,das,esb,is"
+  IFS=',' read -r -a product_code_array <<< "apim,cep,das,esb,is,iot"
 else
   IFS=',' read -r -a product_code_array <<< "${product_codes}"
 fi
