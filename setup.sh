@@ -146,6 +146,7 @@ function setupModule() {
 
     rm -rf "${PUPPET_HOME}/modules/${1}"
 
+    echoInfo "Creating symlink for Hiera data..."
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_core/hieradata/dev/wso2/wso2iot_core" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_broker/hieradata/dev/wso2/wso2iot_broker" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_analytics/hieradata/dev/wso2/wso2iot_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
@@ -153,6 +154,7 @@ function setupModule() {
     return
   fi
 
+  echoInfo "Creating symlink for Hiera data..."
   if [[ ${1} == "wso2base" ]];then
     ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml" "${PUPPET_HOME}/hieradata/dev/wso2/"
     echoSuccess "Successfully installed ${1} puppet module and Hiera data for ${3} platform."
