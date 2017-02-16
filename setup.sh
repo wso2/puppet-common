@@ -60,13 +60,17 @@ function showUsageAndExit() {
   echo -en "  -l\t"
   echo "[OPTIONAL] Platform to setup Hiera data. If none given 'default' platform will be taken"
   echo -en "  -v\t"
-  echo "[OPTIONAL] Product version. If none given latest version will be taken. Multiple products not supported."
+  echo "[OPTIONAL] Product version. The version related branch will be checked out. If none given, latest version will
+   be taken. Multiple products not supported."
+  echo -en "  -t\t"
+  echo "[OPTIONAL] Product-puppet module release tag. Checkouts the tag into a detached HEAD state"
   echo
 
   echoBold "Ex: ./setup.sh -p esb "
   echoBold "Ex: ./setup.sh -p esb -v 4.9.0 "
   echoBold "Ex: ./setup.sh -p esb,apim -l kubernetes"
   echoBold "Ex: ./setup.sh -p all "
+  echoBold "Ex: ./setup.sh -p apim -t v2.1.0"
   echo
   exit 1
 }
@@ -84,7 +88,7 @@ function validatePuppetHome() {
 
 # To checkout the git branch and switch between branches if it exists
 # $1 - Puppet module name (equivalent to product name)
-# $2 - product version
+# $2 - product version (branch related to the given version will be checked out)
 function checkoutBranch() {
   pushd ${PUPPET_HOME}/modules/${1}
     if [[ ${2} == "latest" ]]; then
@@ -111,17 +115,35 @@ function checkoutBranch() {
   popd
 }
 
+# Checkout the release tag to a new branch
+# $1 - Puppet module name (equivalent to product name)
+# $2 - product release tag
+function checkoutTag(){
+  pushd ${PUPPET_HOME}/modules/${1}
+    if [[ -n ${2} ]]; then
+      if [[ `git tag -l ${2}` == ${2} ]]; then
+        echoInfo "Checking out tag ${2} ..."
+        git checkout tags/${2}
+      else
+        echoError "Specified tag '${2}' does not exist for puppet module repository '${1}'";
+      fi
+    fi
+  popd
+}
+
 # Setup Puppet module for given wso2 product
 # $1 - Puppet module name (equivalent to product name)
 # $2 - product code
 # $3 - platform
 # $4 - product version
+# $5 - Release tag of the product puppet module
 function setupModule() {
   echoInfo "Setting up ${1} Puppet module for ${3} platform..."
   if [ -d "${PUPPET_HOME}/modules/${1}" ]; then
 
     if [[ ${1} != "wso2base" ]];then
       checkoutBranch ${1} ${4}
+      checkoutTag ${1} ${5}
     fi
 
     echoWarn "${PUPPET_HOME}/modules/${1} directory exists. Skipping..."
@@ -138,6 +160,9 @@ function setupModule() {
   fi
 
   git clone ${puppet_git_url} "${PUPPET_HOME}/modules/${1}"
+  if [[ ${1} == "wso2base" ]];then
+      echoInfo "Cloned wso2base module and it is in the master branch"
+  fi
 
   if [[ ${2} == "iot" ]]; then
     mv "${PUPPET_HOME}/modules/${1}/wso2iot_core" "${PUPPET_HOME}/modules/"
@@ -150,6 +175,23 @@ function setupModule() {
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_core/hieradata/dev/wso2/wso2iot_core" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_broker/hieradata/dev/wso2/wso2iot_broker" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2iot_analytics/hieradata/dev/wso2/wso2iot_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    echoSuccess "Successfully installed ${1} puppet modules and Hiera data for ${3} platform."
+
+    return
+  fi
+
+  if [[ ${2} == "apim" ]]; then
+    checkoutBranch ${1} ${4}
+    checkoutTag ${1} ${5}
+    mv "${PUPPET_HOME}/modules/${1}/wso2am_runtime" "${PUPPET_HOME}/modules/"
+    mv "${PUPPET_HOME}/modules/${1}/wso2am_analytics" "${PUPPET_HOME}/modules/"
+
+    rm -rf "${PUPPET_HOME}/modules/${1}"
+
+    echoInfo "Creating symlink for Hiera data..."
+    ln -sf  "${PUPPET_HOME}/modules/wso2am_runtime/hieradata/dev/wso2/wso2am_runtime" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    ln -sf  "${PUPPET_HOME}/modules/wso2am_analytics/hieradata/dev/wso2/wso2am_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    echoSuccess "Successfully installed ${1} puppet modules and Hiera data for ${3} platform."
 
     return
   fi
@@ -161,6 +203,7 @@ function setupModule() {
     return
   else
     checkoutBranch ${1} ${4}
+    checkoutTag ${1} ${5}
   fi
 
   if [[ ${3} == "default" ]]; then
@@ -182,7 +225,7 @@ function setupModule() {
 }
 
 platform='default'
-while getopts :p:l:v: FLAG; do
+while getopts :p:l:v:t: FLAG; do
   case ${FLAG} in
     p)
       product_codes=$OPTARG
@@ -192,6 +235,9 @@ while getopts :p:l:v: FLAG; do
       ;;
     v)
       product_version=$OPTARG
+      ;;
+    t)
+      release_tag=$OPTARG
       ;;
     \?)
       showUsageAndExit
@@ -241,7 +287,7 @@ fi
 
 for product_code in "${product_code_array[@]}"; do
   getProductName ${product_code}
-  setupModule ${product_name} ${product_code} ${platform} ${product_version}
+  setupModule ${product_name} ${product_code} ${platform} ${product_version} ${release_tag}
 done
 
 echoInfo "Setup completed successfully. Please copy relevant distributions to Puppet file bucket."
