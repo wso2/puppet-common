@@ -60,16 +60,17 @@ function showUsageAndExit() {
   echo -en "  -l\t"
   echo "[OPTIONAL] Platform to setup Hiera data. If none given 'default' platform will be taken"
   echo -en "  -v\t"
-  echo "[OPTIONAL] Product version. If none given latest version will be taken. Multiple products not supported."
+  echo "[OPTIONAL] Product version. The version related branch will be checked out. If none given, latest version will
+   be taken. Multiple products not supported."
   echo -en "  -t\t"
-  echo "[OPTIONAL] Product-puppet module release tag. A new branch will be created from the given release tag and shift to that new branch"
+  echo "[OPTIONAL] Product-puppet module release tag. Checkouts the tag into a detached HEAD state"
   echo
 
   echoBold "Ex: ./setup.sh -p esb "
   echoBold "Ex: ./setup.sh -p esb -v 4.9.0 "
   echoBold "Ex: ./setup.sh -p esb,apim -l kubernetes"
   echoBold "Ex: ./setup.sh -p all "
-  echoBold "Ex: ./setup.sh -p apim -v 2.1.0 -t v2.1.0"
+  echoBold "Ex: ./setup.sh -p apim -t v2.1.0"
   echo
   exit 1
 }
@@ -87,7 +88,7 @@ function validatePuppetHome() {
 
 # To checkout the git branch and switch between branches if it exists
 # $1 - Puppet module name (equivalent to product name)
-# $2 - product version
+# $2 - product version (branch related to the given version will be checked out)
 function checkoutBranch() {
   pushd ${PUPPET_HOME}/modules/${1}
     if [[ ${2} == "latest" ]]; then
@@ -122,7 +123,7 @@ function checkoutTag(){
     if [[ -n ${2} ]]; then
       if [[ `git tag -l ${2}` == ${2} ]]; then
         echoInfo "Checking out tag ${2} ..."
-        git checkout -b release-${2} tags/${2}
+        git checkout tags/${2}
       else
         echoError "Specified tag '${2}' does not exist for puppet module repository '${1}'";
       fi
@@ -142,6 +143,7 @@ function setupModule() {
 
     if [[ ${1} != "wso2base" ]];then
       checkoutBranch ${1} ${4}
+      checkoutTag ${1} ${5}
     fi
 
     echoWarn "${PUPPET_HOME}/modules/${1} directory exists. Skipping..."
@@ -201,6 +203,7 @@ function setupModule() {
     return
   else
     checkoutBranch ${1} ${4}
+    checkoutTag ${1} ${5}
   fi
 
   if [[ ${3} == "default" ]]; then
