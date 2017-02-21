@@ -16,15 +16,15 @@
 servers:
   -
     enabled: true
-    hostname: esb.dev.wso2.org
+    hostname: default
     facters:
-      product_name: wso2esb
-      product_version: 4.9.0
+      product_name: wso2am_runtime
+      product_version: 2.1.0
       product_profile: default
       environment: dev
       platform: default
-      use_hieradata: true
-      pattern: pattern-1
+      use_hieradata: false
+      pattern: pattern-0
     box: ubuntu/trusty64
     ip: 192.168.100.2
     ram: 2048
@@ -38,6 +38,7 @@ servers:
 #     product_version: version
 #     product_profile: profile
 #     environment: dev
+#     platform: default
 #     use_hieradata: true
 #     pattern: pattern-1
 #   box: ubuntu/trusty64
