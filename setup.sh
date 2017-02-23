@@ -185,12 +185,13 @@ function setupModule() {
     checkoutTag ${1} ${5}
     mv "${PUPPET_HOME}/modules/${1}/wso2am_runtime" "${PUPPET_HOME}/modules/"
     mv "${PUPPET_HOME}/modules/${1}/wso2am_analytics" "${PUPPET_HOME}/modules/"
-
+    mv "${PUPPET_HOME}/modules/${1}/wso2is_prepacked" "${PUPPET_HOME}/modules/"
     rm -rf "${PUPPET_HOME}/modules/${1}"
 
     echoInfo "Creating symlink for Hiera data..."
     ln -sf  "${PUPPET_HOME}/modules/wso2am_runtime/hieradata/dev/wso2/wso2am_runtime" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2am_analytics/hieradata/dev/wso2/wso2am_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    ln -sf  "${PUPPET_HOME}/modules/wso2is_prepacked/hieradata/dev/wso2/wso2is_prepacked" "${PUPPET_HOME}/hieradata/dev/wso2/"
     echoSuccess "Successfully installed ${1} puppet modules and Hiera data for ${3} platform."
 
     return
