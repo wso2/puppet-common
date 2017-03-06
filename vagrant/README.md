@@ -18,10 +18,10 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
 
     Additionally, you can copy a sample `config.yaml` file from the `vagrant-samples` folder found in puppet-<product> repository for quickly running a product on Vagrant.
 
-2. Download and copy Oracle JDK `1.7_80` distribution to the following path:
+2. Download and copy Oracle JDK `1.8.0_112` distribution to the following path:
 
     ````
-    <PUPPET_HOME>/modules/wso2base/files/jdk-7u80-linux-x64.tar.gz
+    <PUPPET_HOME>/modules/wso2base/files/jdk-8u112-linux-x64.tar.gz
     ````
 
 3. Download and copy required WSO2 product distributions to each Puppet module under `files` folder:
