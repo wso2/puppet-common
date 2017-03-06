@@ -21,7 +21,7 @@
     <groupId>org.wso2.puppet</groupId>
     <artifactId>wso2-puppet-common</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>WSO2 Puppet Common</name>
     <description>WSO2 Puppet Common</description>
 
