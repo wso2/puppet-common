@@ -41,7 +41,6 @@ product_profile: Product profile
 environment: Puppet environment
 platform: The platform to use. ex: default, kubernetes, mesos
 use_hieradata: Set to true to use Hiera as the data backend
-install_java: Set to true to install the JDK during the Puppet run.
 pattern: Product pattern as defined in the product Puppet module.
 ```
 
@@ -54,6 +53,5 @@ product_profile: default
 environment: dev
 platform: default
 use_hieradata: false
-install_java: true
 pattern: pattern-0
 ```
