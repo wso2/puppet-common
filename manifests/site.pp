@@ -19,17 +19,9 @@
 # Default node definition
 node "default" {
   if $::use_hieradata == "true" {
-    if $::install_java == "true"
-      require wso2base::java
-    }
-
     hiera_include('classes')
 
   } else {
-    if $::install_java == "true"
-      class { '::wso2base::java': } -> class { "::${::product_name}": }
-    } else {
-      class { "::${::product_name}": }
-    }
+    class { "::${::product_name}": }
   }
 }
