@@ -29,3 +29,31 @@ Ex: ./setup.sh -p all
 ```
 Finally go to the puppet-base module and checkout the compatible version of puppet-base module with the
 product-module version.
+
+### Required Custom Facts
+
+Following custom Facts are required for the WSO2 Puppet modules to run.
+
+```yaml
+product_name: Product name as defined in the product Puppet module
+product_version: Produce version
+product_profile: Product profile
+environment: Puppet environment
+platform: The platform to use. ex: default, kubernetes, mesos
+use_hieradata: Set to true to use Hiera as the data backend
+install_java: Set to true to install the JDK during the Puppet run.
+pattern: Product pattern as defined in the product Puppet module.
+```
+
+For example, for WSO2 API Manager pattern-0, the following set of Facts can be set.
+
+```yaml
+product_name: wso2am_runtime
+product_version: 2.1.0
+product_profile: default
+environment: dev
+platform: default
+use_hieradata: false
+install_java: true
+pattern: pattern-0
+```

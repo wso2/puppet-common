@@ -24,6 +24,7 @@ servers:
       environment: dev
       platform: default
       use_hieradata: false
+      install_java: true
       pattern: pattern-0
     box: ubuntu/trusty64
     ip: 192.168.100.2
@@ -40,6 +41,7 @@ servers:
 #     environment: dev
 #     platform: default
 #     use_hieradata: true
+#     install_java: true
 #     pattern: pattern-1
 #   box: ubuntu/trusty64
 #   ip: 192.168.100.3
