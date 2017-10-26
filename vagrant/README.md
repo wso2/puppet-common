@@ -21,7 +21,7 @@ Puppet will be used as the provisioning method in Vagrant and Hiera as the confi
 2. Download and copy Oracle JDK `1.8.0_131` distribution to the following path:
 
     ````
-    <PUPPET_HOME>/modules/wso2base/files/jdk-8u112-linux-x64.tar.gz
+    <PUPPET_HOME>/modules/wso2base/files/jdk-8u131-linux-x64.tar.gz
     ````
 
 3. Download and copy required WSO2 product distributions to each Puppet module under `files` folder:
