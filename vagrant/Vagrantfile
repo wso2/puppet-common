@@ -50,8 +50,8 @@ Vagrant.configure(2) do |config|
         server_config.vm.box = server['box']
         server_config.vm.host_name = server['hostname']
         server_config.vm.network :private_network, ip: server['ip']
-        server_config.vm.synced_folder HIERADATA_PATH, '/puppet/hieradata', id: 'hieradata', type: 'rsync'
-        server_config.vm.synced_folder PUPPET_FILESERVER_PATH, '/puppet/files', id: 'puppet_fileserver'
+        server_config.vm.synced_folder HIERADATA_PATH, '/etc/puppet/hieradata', id: 'hieradata', type: 'rsync'
+        server_config.vm.synced_folder PUPPET_FILESERVER_PATH, '/etc/puppet/files', id: 'puppet_fileserver'
         memory = server['ram'] ? server['ram'] : 256
         cpu = server['cpu'] ? server['cpu'] : 1
 
@@ -73,7 +73,7 @@ Vagrant.configure(2) do |config|
           puppet.manifests_path = File.join(PUPPET_HOME, 'manifests')
           puppet.module_path = File.join(PUPPET_HOME, 'modules')
           puppet.hiera_config_path = File.join(PUPPET_HOME, 'hiera.yaml')
-          puppet.working_directory = '/puppet'
+          puppet.working_directory = '/etc/puppet'
           puppet.options = %w(--verbose --fileserverconfig=/vagrant/fileserver.conf --debug --trace)
 
           # custom facts provided to Puppet
