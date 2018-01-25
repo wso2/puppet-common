@@ -197,6 +197,22 @@ function setupModule() {
     return
   fi
 
+  if [[ ${2} == "is" ]]; then
+    checkoutBranch ${1} ${4}
+    checkoutTag ${1} ${5}
+    mv "${PUPPET_HOME}/modules/${1}" "${PUPPET_HOME}/modules/${1}-tmp"
+    mv "${PUPPET_HOME}/modules/${1}-tmp/wso2is" "${PUPPET_HOME}/modules/"
+    mv "${PUPPET_HOME}/modules/${1}-tmp/wso2is_analytics" "${PUPPET_HOME}/modules/"
+    rm -rf "${PUPPET_HOME}/modules/${1}-tmp"
+
+    echoInfo "Creating symlink for Hiera data..."
+    ln -sf  "${PUPPET_HOME}/modules/wso2is/hieradata/dev/wso2/wso2is" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    ln -sf  "${PUPPET_HOME}/modules/wso2is_analytics/hieradata/dev/wso2/wso2is_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
+    echoSuccess "Successfully installed ${1} puppet modules and Hiera data for ${3} platform."
+
+    return
+  fi
+
   echoInfo "Creating symlink for Hiera data..."
   if [[ ${1} == "wso2base" ]];then
     ln -sf  "${PUPPET_HOME}/modules/${1}/hieradata/dev/wso2/common.yaml" "${PUPPET_HOME}/hieradata/dev/wso2/"
