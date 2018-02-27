@@ -209,7 +209,6 @@ function setupModule() {
     ln -sf  "${PUPPET_HOME}/modules/wso2is/hieradata/dev/wso2/wso2is" "${PUPPET_HOME}/hieradata/dev/wso2/"
     ln -sf  "${PUPPET_HOME}/modules/wso2is_analytics/hieradata/dev/wso2/wso2is_analytics" "${PUPPET_HOME}/hieradata/dev/wso2/"
     echoSuccess "Successfully installed ${1} puppet modules and Hiera data for ${3} platform."
-
     return
   fi
 
